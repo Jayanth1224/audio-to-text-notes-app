@@ -1,151 +1,118 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, SafeAreaView, Platform } from 'react-native';
-import { useRouter } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import { Check, X } from 'lucide-react-native';
-import { useNoteStore } from '@/store/noteStore';
-import { transcribeAudio } from '@/utils/audioTranscription';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { handleSharedVideo } from '@/utils/shareHandler';
+import { AudioProcessor } from '@/utils/audioProcessor';
+import { useNoteStore, NoteStoreState } from '@/store/noteStore';
 import Colors from '@/constants/Colors';
 
-// This would be a share extension entry point in a real native app
-// For Expo, we'll simulate receiving a shared video
 export default function ShareScreen() {
-  const router = useRouter();
-  const { createNote } = useNoteStore();
-  const [isProcessing, setIsProcessing] = useState(true);
-  const [transcript, setTranscript] = useState('');
+  const [status, setStatus] = useState<'loading' | 'processing' | 'success' | 'error'>('loading');
   const [error, setError] = useState<string | null>(null);
-  
-  // Simulate receiving a video and transcribing the audio
+  const router = useRouter();
+  const params = useLocalSearchParams();
+  const createNote = useNoteStore((state: NoteStoreState & { createNote: Function }) => state.createNote);
+
   useEffect(() => {
     const processSharedContent = async () => {
       try {
-        // In a real app, we'd get the shared video URL from the share extension
-        // Here we'll simulate a transcription with a delay
-        const simulatedTranscript = await transcribeAudio();
-        setTranscript(simulatedTranscript);
+        // Handle the shared video
+        const video = await handleSharedVideo(params);
+        if (!video) {
+          setError('No video was shared');
+          setStatus('error');
+          return;
+        }
+
+        setStatus('processing');
+        
+        // Process the video to extract audio and transcribe
+        const transcription = await AudioProcessor.processAudioFromVideo(video.uri);
+        if (!transcription) {
+          setError('Failed to transcribe video');
+          setStatus('error');
+          return;
+        }
+
+        // Create a new note with the transcription
+        const note = createNote({
+          title: `Video Note ${new Date().toLocaleDateString()}`,
+          content: transcription,
+          folderId: 'notes'
+        });
+
+        setStatus('success');
+        
+        // Navigate to the note after a short delay
+        setTimeout(() => {
+          router.replace(`/note/${note.id}`);
+        }, 1500);
+
       } catch (err) {
-        setError('Failed to transcribe audio. Please try again.');
-        console.error(err);
-      } finally {
-        setIsProcessing(false);
+        console.error('Error processing shared content:', err);
+        setError(err instanceof Error ? err.message : 'An unknown error occurred');
+        setStatus('error');
       }
     };
-    
+
     processSharedContent();
-  }, []);
-  
-  const handleSave = () => {
-    if (transcript) {
-      // Create a new note with the transcribed content
-      createNote({
-        title: 'Transcribed Note',
-        content: transcript,
-        folderId: 'notes', // Default folder
-      });
-      
-      // Navigate to the notes list
-      router.replace('/');
-    }
-  };
-  
-  const handleCancel = () => {
-    router.back();
-  };
-  
+  }, [params]);
+
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar style="light" />
-      <View style={styles.header}>
-        <TouchableOpacity onPress={handleCancel} style={styles.headerButton}>
-          <X size={24} color={Colors.red} />
-        </TouchableOpacity>
-        <Text style={styles.title}>Transcribe Audio</Text>
-        <TouchableOpacity 
-          onPress={handleSave} 
-          style={styles.headerButton}
-          disabled={isProcessing || !transcript}
-        >
-          <Check size={24} color={isProcessing || !transcript ? Colors.gray : Colors.green} />
-        </TouchableOpacity>
-      </View>
-      
-      <View style={styles.content}>
-        {isProcessing ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={Colors.yellow} />
-            <Text style={styles.loadingText}>Transcribing audio...</Text>
-          </View>
-        ) : error ? (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>{error}</Text>
-          </View>
-        ) : (
-          <View style={styles.transcriptContainer}>
-            <Text style={styles.transcriptText}>{transcript}</Text>
-          </View>
-        )}
-      </View>
-    </SafeAreaView>
+    <View style={styles.container}>
+      {status === 'loading' && (
+        <>
+          <ActivityIndicator size="large" color={Colors.primary} />
+          <Text style={styles.text}>Loading shared content...</Text>
+        </>
+      )}
+
+      {status === 'processing' && (
+        <>
+          <ActivityIndicator size="large" color={Colors.primary} />
+          <Text style={styles.text}>Processing video and transcribing audio...</Text>
+        </>
+      )}
+
+      {status === 'success' && (
+        <>
+          <Text style={[styles.text, styles.success]}>✓ Note created successfully!</Text>
+          <Text style={styles.text}>Redirecting to your note...</Text>
+        </>
+      )}
+
+      {status === 'error' && (
+        <>
+          <Text style={[styles.text, styles.error]}>Error: {error}</Text>
+          <Text style={styles.text}>Please try sharing the video again.</Text>
+        </>
+      )}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.darkBackground,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingTop: Platform.OS === 'ios' ? 0 : 20,
-    paddingBottom: 16,
-    borderBottomWidth: 0.5,
-    borderBottomColor: Colors.borderColor,
-  },
-  headerButton: {
-    padding: 8,
-  },
-  title: {
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
-    color: Colors.white,
-  },
-  content: {
-    flex: 1,
-    padding: 16,
-  },
-  loadingContainer: {
-    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    padding: 20,
+    backgroundColor: Colors.background,
   },
-  loadingText: {
-    marginTop: 16,
+  text: {
+    marginTop: 20,
     fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: Colors.white,
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  errorText: {
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: Colors.red,
     textAlign: 'center',
+    color: Colors.text,
   },
-  transcriptContainer: {
-    flex: 1,
+  success: {
+    color: Colors.success,
+    fontSize: 18,
+    fontWeight: 'bold',
   },
-  transcriptText: {
-    fontSize: 17,
-    fontFamily: 'Inter-Regular',
-    color: Colors.white,
-    lineHeight: 24,
+  error: {
+    color: Colors.error,
+    fontSize: 18,
+    fontWeight: 'bold',
   },
 });

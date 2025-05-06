@@ -10,16 +10,7 @@ export interface Note {
   folderId: string;
 }
 
-interface NoteStore {
-  notes: Note[];
-  getNoteById: (id: string) => Note | undefined;
-  getNotesByFolderId: (folderId: string) => Note[];
-  createNote: (data: { title: string; content: string; folderId: string }) => Note;
-  updateNote: (id: string, data: Partial<Omit<Note, 'id' | 'createdAt' | 'updatedAt'>>) => void;
-  deleteNote: (id: string) => void;
-}
-
-type NoteStoreState = {
+export type NoteStoreState = {
   notes: Note[];
 };
 
@@ -75,15 +66,17 @@ const initialNotes: Note[] = [
   },
 ];
 
-export const useNoteStore = create<NoteStoreState & NoteStoreActions>((set, get) => ({
+type Store = NoteStoreState & NoteStoreActions;
+
+export const useNoteStore = create<Store>((set, get) => ({
   notes: initialNotes,
   
   getNoteById: (id: string) => {
-    return get().notes.find((note) => note.id === id);
+    return get().notes.find((note: Note) => note.id === id);
   },
   
   getNotesByFolderId: (folderId: string) => {
-    return get().notes.filter((note) => note.folderId === folderId);
+    return get().notes.filter((note: Note) => note.folderId === folderId);
   },
   
   createNote: (data: { title: string; content: string; folderId: string }) => {
@@ -105,7 +98,7 @@ export const useNoteStore = create<NoteStoreState & NoteStoreActions>((set, get)
   
   updateNote: (id: string, data: Partial<Omit<Note, 'id' | 'createdAt' | 'updatedAt'>>) => {
     set((state: NoteStoreState) => ({
-      notes: state.notes.map((note) => 
+      notes: state.notes.map((note: Note) => 
         note.id === id 
           ? { 
               ...note, 
@@ -119,7 +112,7 @@ export const useNoteStore = create<NoteStoreState & NoteStoreActions>((set, get)
   
   deleteNote: (id: string) => {
     set((state: NoteStoreState) => ({
-      notes: state.notes.filter((note) => note.id !== id),
+      notes: state.notes.filter((note: Note) => note.id !== id),
     }));
   },
 }));

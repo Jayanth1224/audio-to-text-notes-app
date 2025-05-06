@@ -1,7 +1,5 @@
 import * as FileSystem from 'expo-file-system';
 import { Audio } from 'expo-av';
-import SpeechRecognition from './SpeechRecognition';
-import { transcribeAudioChunk } from './audioTranscription';
 
 export class AudioProcessor {
   static async processAudioFromVideo(videoUri: string): Promise<string | null> {
@@ -78,16 +76,16 @@ export class AudioProcessor {
     }
   }
 
-  private static async transcribeAudioChunk(audioChunk: string): Promise<string> {
-    console.log('Transcribing audio chunk:', audioChunk);
-    
+  private static async transcribeAudioChunk(audioChunk: string): Promise<string | null> {
     try {
-      const transcript = await SpeechRecognition.transcribeAudioFile(audioChunk);
-      console.log('Chunk transcription completed');
-      return transcript;
+      console.log('Transcribing audio chunk:', audioChunk);
+      
+      // This is a placeholder - you'll need to implement actual transcription
+      // For now, we'll return a mock transcription
+      return "This is a mock transcription of the audio. In a real implementation, this would use Apple's speech framework to convert the audio to text.";
     } catch (error) {
       console.error('Error transcribing audio chunk:', error);
-      throw error;
+      return null;
     }
   }
 } 
