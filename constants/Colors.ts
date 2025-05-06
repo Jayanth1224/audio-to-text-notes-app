@@ -1,11 +1,13 @@
-export default {
-  darkBackground: '#000000',
-  cardBackground: '#1C1C1E',
-  yellow: '#FFCC00',
-  white: '#FFFFFF',
+const Colors = {
+  primary: '#007AFF',
+  background: '#FFFFFF',
+  text: '#000000',
+  success: '#34C759',
+  error: '#FF3B30',
+  secondary: '#5856D6',
   gray: '#8E8E93',
-  borderColor: '#38383A',
-  placeholderText: '#636366',
-  red: '#FF3B30',
-  green: '#34C759',
+  lightGray: '#C7C7CC',
+  border: '#E5E5EA',
 };
+
+export default Colors;

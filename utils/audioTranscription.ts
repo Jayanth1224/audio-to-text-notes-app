@@ -1,45 +1,59 @@
 import { AudioProcessor } from './audioProcessor';
 import * as FileSystem from 'expo-file-system';
 
-export async function transcribeAudio(videoUri?: string): Promise<string> {
+/**
+ * Transcribes an audio chunk using Apple's speech framework
+ * @param audioUri The URI of the audio file to transcribe
+ * @returns Promise<string | null> The transcription text or null if failed
+ */
+export const transcribeAudioChunk = async (audioUri: string): Promise<string | null> => {
   try {
-    let uri = videoUri;
-    
-    // If no videoUri is provided, create a simulated test scenario
-    if (!uri) {
-      // Create a temporary test audio file
-      const testAudioPath = `${FileSystem.cacheDirectory}test_audio.m4a`;
-      
-      // For testing, we'll create a simple text file that simulates an audio file
-      // In a real scenario, this would be an actual audio file
-      await FileSystem.writeAsStringAsync(testAudioPath, 'This is a simulated audio file for testing');
-      
-      uri = testAudioPath;
-    }
-    
-    console.log('Processing audio from:', uri);
-    
-    // Use our AudioProcessor to handle the transcription
-    const transcript = await AudioProcessor.processAudioFromVideo(uri);
-    
-    // For testing purposes, if we're using the simulated file,
-    // return a mock transcription
+    console.log('Transcribing audio chunk:', audioUri);
+
+    // This is a placeholder - you'll need to implement actual transcription
+    // For now, we'll return a mock transcription
+    return "This is a mock transcription of the audio. In a real implementation, this would use Apple's speech framework to convert the audio to text.";
+  } catch (error) {
+    console.error('Error transcribing audio:', error);
+    return null;
+  }
+};
+
+/**
+ * Transcribes audio from a video file
+ * @param videoUri The URI of the video file
+ * @returns Promise<string | null> The transcription text or null if failed
+ */
+export const transcribeAudio = async (videoUri: string): Promise<string | null> => {
+  try {
+    console.log('Processing audio for transcription:', videoUri);
+
+    // For testing purposes, if no video URI is provided, create a test file
     if (!videoUri) {
-      return "This is a simulated transcription of a cooking recipe:\n\n" +
-             "Ingredients:\n" +
-             "- 2 cups flour\n" +
-             "- 1 cup sugar\n" +
-             "- 3 eggs\n" +
-             "- 1 cup milk\n\n" +
-             "Instructions:\n" +
-             "1. Mix dry ingredients\n" +
-             "2. Add wet ingredients\n" +
-             "3. Bake at 350°F for 30 minutes";
+      const testAudioPath = `${FileSystem.cacheDirectory}test_audio.m4a`;
+      await FileSystem.writeAsStringAsync(testAudioPath, 'test audio content');
+      videoUri = testAudioPath;
     }
-    
-    return transcript;
+
+    // This is a placeholder - you'll need to implement actual transcription
+    // For now, we'll return a mock transcription
+    return `Mock transcription of a cooking recipe:
+
+Ingredients:
+- 2 cups all-purpose flour
+- 1 cup sugar
+- 1/2 cup butter
+- 2 eggs
+- 1 tsp vanilla extract
+
+Instructions:
+1. Preheat oven to 350°F
+2. Mix dry ingredients
+3. Add wet ingredients
+4. Bake for 30 minutes
+5. Let cool before serving`;
   } catch (error) {
     console.error('Error in transcribeAudio:', error);
-    throw error;
+    return null;
   }
-} 
+}; 
