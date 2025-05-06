@@ -1,5 +1,6 @@
 import * as FileSystem from 'expo-file-system';
 import { Audio } from 'expo-av';
+import SpeechRecognition from './SpeechRecognition';
 
 export class AudioProcessor {
   static async processAudioFromVideo(videoUri: string): Promise<string> {
@@ -7,8 +8,8 @@ export class AudioProcessor {
       // Create a temporary file for the audio
       const tempAudioFile = `${FileSystem.cacheDirectory}temp_audio.m4a`;
       
-      // Extract audio from video (this is a placeholder - actual implementation will depend on native modules)
-      // TODO: Implement actual audio extraction using native modules
+      // Extract audio from video
+      await this.extractAudioFromVideo(videoUri, tempAudioFile);
       
       // Process audio in chunks (60s each)
       const audioChunks = await this.splitAudioIntoChunks(tempAudioFile);
@@ -18,6 +19,14 @@ export class AudioProcessor {
         audioChunks.map(chunk => this.transcribeAudioChunk(chunk))
       );
       
+      // Clean up temporary files
+      await Promise.all([
+        FileSystem.deleteAsync(tempAudioFile, { idempotent: true }),
+        ...audioChunks.map(chunk => 
+          FileSystem.deleteAsync(chunk, { idempotent: true })
+        )
+      ]);
+      
       // Combine transcriptions
       return transcriptions.join(' ');
     } catch (error) {
@@ -26,13 +35,28 @@ export class AudioProcessor {
     }
   }
 
+  private static async extractAudioFromVideo(videoUri: string, outputPath: string): Promise<void> {
+    // TODO: Implement audio extraction using expo-av
+    // This is a placeholder - we'll need to implement actual audio extraction
+    // For now, we'll just copy the file as we expect the input to be an audio file
+    await FileSystem.copyAsync({
+      from: videoUri,
+      to: outputPath
+    });
+  }
+
   private static async splitAudioIntoChunks(audioFile: string): Promise<string[]> {
-    // TODO: Implement audio splitting logic
+    // For now, we'll just return the original file
+    // In a real implementation, we would split files longer than 60s
     return [audioFile];
   }
 
   private static async transcribeAudioChunk(audioChunk: string): Promise<string> {
-    // TODO: Implement speech recognition using native modules
-    return '';
+    try {
+      return await SpeechRecognition.transcribeAudioFile(audioChunk);
+    } catch (error) {
+      console.error('Error transcribing audio chunk:', error);
+      throw error;
+    }
   }
 } 
