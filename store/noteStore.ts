@@ -19,6 +19,18 @@ interface NoteStore {
   deleteNote: (id: string) => void;
 }
 
+type NoteStoreState = {
+  notes: Note[];
+};
+
+type NoteStoreActions = {
+  getNoteById: (id: string) => Note | undefined;
+  getNotesByFolderId: (folderId: string) => Note[];
+  createNote: (data: { title: string; content: string; folderId: string }) => Note;
+  updateNote: (id: string, data: Partial<Omit<Note, 'id' | 'createdAt' | 'updatedAt'>>) => void;
+  deleteNote: (id: string) => void;
+};
+
 // Sample data
 const initialNotes: Note[] = [
   {
@@ -63,18 +75,18 @@ const initialNotes: Note[] = [
   },
 ];
 
-export const useNoteStore = create<NoteStore>((set, get) => ({
+export const useNoteStore = create<NoteStoreState & NoteStoreActions>((set, get) => ({
   notes: initialNotes,
   
-  getNoteById: (id) => {
+  getNoteById: (id: string) => {
     return get().notes.find((note) => note.id === id);
   },
   
-  getNotesByFolderId: (folderId) => {
+  getNotesByFolderId: (folderId: string) => {
     return get().notes.filter((note) => note.folderId === folderId);
   },
   
-  createNote: (data) => {
+  createNote: (data: { title: string; content: string; folderId: string }) => {
     const newNote: Note = {
       id: generateId(),
       title: data.title,
@@ -84,15 +96,15 @@ export const useNoteStore = create<NoteStore>((set, get) => ({
       folderId: data.folderId,
     };
     
-    set((state) => ({
+    set((state: NoteStoreState) => ({
       notes: [newNote, ...state.notes],
     }));
     
     return newNote;
   },
   
-  updateNote: (id, data) => {
-    set((state) => ({
+  updateNote: (id: string, data: Partial<Omit<Note, 'id' | 'createdAt' | 'updatedAt'>>) => {
+    set((state: NoteStoreState) => ({
       notes: state.notes.map((note) => 
         note.id === id 
           ? { 
@@ -105,8 +117,8 @@ export const useNoteStore = create<NoteStore>((set, get) => ({
     }));
   },
   
-  deleteNote: (id) => {
-    set((state) => ({
+  deleteNote: (id: string) => {
+    set((state: NoteStoreState) => ({
       notes: state.notes.filter((note) => note.id !== id),
     }));
   },
