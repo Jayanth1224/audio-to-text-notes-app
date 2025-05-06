@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
@@ -48,7 +48,7 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider>
-      <>
+      <React.Fragment>
         <Stack screenOptions={{ 
           headerShown: false,
           animation: Platform.OS === 'ios' ? 'default' : 'fade_from_bottom',
@@ -57,7 +57,7 @@ export default function RootLayout() {
           <Stack.Screen name="+not-found" options={{ title: 'Oops!' }} />
         </Stack>
         <StatusBar style="light" />
-      </>
+      </React.Fragment>
     </ThemeProvider>
   );
 }
