@@ -13,7 +13,19 @@
       "bundleIdentifier": "com.yourcompany.voicenotes",
       "infoPlist": {
         "NSSpeechRecognitionUsageDescription": "We need access to speech recognition to transcribe your audio notes.",
-        "NSMicrophoneUsageDescription": "We need access to your microphone to record audio for transcription."
+        "NSMicrophoneUsageDescription": "We need access to your microphone to record audio for transcription.",
+        "CFBundleDocumentTypes": [
+          {
+            "CFBundleTypeName": "Video",
+            "LSHandlerRank": "Owner",
+            "LSItemContentTypes": [
+              "public.movie",
+              "com.apple.quicktime-movie"
+            ]
+          }
+        ],
+        "LSSupportsOpeningDocumentsInPlace": true,
+        "UIFileSharingEnabled": true
       }
     },
     "web": {
@@ -31,6 +43,12 @@
           "ios": {
             "deploymentTarget": "15.1"
           }
+        }
+      ],
+      [
+        "expo-document-picker",
+        {
+          "iCloudContainerEnvironment": "Production"
         }
       ]
     ],
